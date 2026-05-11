@@ -39,59 +39,134 @@ exoplanet_df.columns = (
 
 print(exoplanet_df.columns.to_list())
 
-# Initial Dataset Inspection
-print(exoplanet_df.head())
-print(exoplanet_df.info())
-print(exoplanet_df.describe())
+# Dataset Forensics --------------------------------------------------------
+# Dataset Snapshot
+print("\n===== Dataset Snapshot =====")
+print(f"Rows: {exoplanet_df.shape[0]}")
+print(f"Columns: {exoplanet_df.shape[1]}")
 
-# Missing Value Analysis ------------------------
-# Missing Value Counts
-missing_counts = exoplanet_df.isnull().sum()
-missing_percentages = (
-    exoplanet_df.isnull().mean() * 100
-).sort_values(ascending=False)
+print("\nData Types:")
+print(exoplanet_df.dtypes)
 
-print(missing_percentages)
+# Missingness Quantification
+missing_summary = pd.DataFrame({
+    "Missing Count": exoplanet_df.isnull().sum(),
+    "Missing Percentage": (exoplanet_df.isnull().mean() * 100)
+})
 
-# Missingness Heatmap
+missing_summary = missing_summary.sort_values(by="Missing Percentage", ascending=False)
+print("\n===== Missing Value Summary =====")
+print(missing_summary)
+
+# Missingness Visualizations
 plt.figure(figsize=(14, 8))
-msno.matrix(exoplanet_df)
+msno.matrix(exoplanet_df) # Matrix plot showing missing data patterns
 plt.title("Missing Data Matrix")
 plt.show()
+
+plt.figure(figsize=(14, 8))
+msno.bar(exoplanet_df) # Bar plot showing completeness distribution
+plt.title("Column Completeness")
+plt.show()
+
 
 # Missingness by Discovery Method
 missing_by_method = (
     exoplanet_df
-    .groupby("discoverymethod")
+    .groupby("discovery_method")
     .apply(lambda x: x.isnull().mean() * 100)
 )
 
+print("\n===== Missingness by Discovery Method =====")
 print(missing_by_method)
+# observational bias analysis ^
+# allows us to discuss: transit detections containing more radius info, radial velocity detections containing better mass estimates, direct imaging having sparse orbital data. 
 
-# Scientific Constraint Validation ------------------------
-# Example constraints:
+# Duplicate Structure Analysis
+# Exact Duplicate Rows
+exact_duplicates = exoplanet_df.duplicated().sum()
+print("\n===== Exact Duplicates =====")
+print(f"Exact duplicate rows: {exact_duplicates}")
+
+# Duplicate Planet Names
+planet_duplicates = (
+    exoplanet_df["planet_name"]
+    .value_counts()
+)
+planet_duplicates = planet_duplicates[planet_duplicates > 1]
+print("\n===== Planets with Multiple Records =====")
+print(planet_duplicates.head(20)) # only the top 20 for brevity
+# Archival evolution analysis ^
+
+# Investigate 1 Planet Through Time --> must decide on a specific planet to track its data quality and evolution over time
+example_planet = "11_com_b"
+planet_history = exoplanet_df[
+    exoplanet_df["planet_name"] == example_planet
+]
+print(planet_history)
+
+# Shows changing measurements, improving completeness and archival revisions for a specific planet, illustrating the dynamic nature of exoplanet data and the importance of ongoing data quality efforts.
+
+
+# Scientific Validation Rules -----------------------------------------------------------------
+# Planet Mass Validation
+invalid_mass = ((exoplanet_df["planet_mass_m_e"] <= 0) & exoplanet_df["planet_mass_m_e"].notnull())
+print(f"Invalid planet mass rows: {invalid_mass.sum()}")
+exoplanet_df = exoplanet_df[~invalid_mass]
+
+# Orbital Radius Validation
+invalid_orbit = ((exoplanet_df["orbit_semi-major_axis_au"] <= 0) & exoplanet_df["orbit_semi-major_axis_au"].notnull())
+print(f"Invalid orbital radius rows: {invalid_orbit.sum()}")
+exoplanet_df = exoplanet_df[~invalid_orbit]
+
+# Stellar Distance Validation
+invalid_distance = ((exoplanet_df["stellar_distance_pc"] <= 0) & exoplanet_df["stellar_distance_pc"].notnull())
+print(f"Invalid stellar distance rows: {invalid_distance.sum()}")
+exoplanet_df = exoplanet_df[~invalid_distance]
+
+# Planet Temperature Validation
+invalid_temp = ((exoplanet_df["planet_temperature_k"] < 0) & exoplanet_df["planet_temperature_k"].notnull())
+print(f"Invalid planet temperature rows: {invalid_temp.sum()}")
+exoplanet_df = exoplanet_df[~invalid_temp]
+
 # Remove impossible eccentricity values
-exoplanet_df = exoplanet_df[
-    (exoplanet_df["pl_orbeccen"] >= 0) & 
-    (exoplanet_df["pl_orbeccen"] < 1)
-]
-
-# Remove non-positive planet masses 
-exoplanet_df = exoplanet_df[
-    exoplanet_df["pl_bmasse"] > 0
-]
+exoplanet_df = exoplanet_df[(exoplanet_df["pl_orbeccen"] >= 0) & (exoplanet_df["pl_orbeccen"] < 1)]
 
 # Remove unrealistic stellar temperatures
-exoplanet_df = exoplanet_df[
-    (exoplanet_df["st_teff"] > 2000) & 
-    (exoplanet_df["st_teff"] < 50000)
-]
+exoplanet_df = exoplanet_df[(exoplanet_df["st_teff"] > 2000) & (exoplanet_df["st_teff"] < 50000)]
 
-# Duplicate Removal ------------------------
-print("Duplicate rows:", exoplanet_df.duplicated().sum())
-exoplanet_df = exoplanet_df.drop_duplicates()
+# Observational Refinement Analysis ---------------------------------------------------------------------------------------
+# Goal is to analyse whether: newer records contain more complete and accurate data, planetary measurements evolve over time and whether modern astronomy improves data completeness 
+# Completeness by Discovery Year
+yearly_completeness = (exoplanet_df.groupby("discovery_year").apply(lambda x: 100 - (x.isnull().mean().mean() * 100)))
+plt.figure(figsize=(12, 6))
+plt.plot(yearly_completeness.index, yearly_completeness.values, marker="o")
 
-# Imputation --------------------------------------------------------
+plt.xlabel("Discovery Year")
+plt.ylabel("Average Dataset Completeness (%)")
+plt.title("Dataset Completeness Across Discovery Years")
+
+plt.show()
+
+# Duplicate Consolidation ----------------------------------------------------------------------------------------------
+# Instead of simply dropping duplicates, we consolidate planetary records by keeping the latest release, aggregating numeric values and preserving the best available measurements for each planet.
+# Convert Release Date
+exoplanet_df["releasedate"] = pd.to_datetime(exoplanet_df["releasedate"], errors="coerce")
+# Sort by Release Date
+exoplanet_df = exoplanet_df.sort_values(by="releasedate")
+# Consolidation strategy
+numerical_columns = exoplanet_df.select_dtypes(include=np.number).columns
+categorical_columns = exoplanet_df.select_dtypes(exclude=np.number).columns
+# Aggregate Function
+aggregation_rules = {}
+for col in numerical_columns:
+    aggregation_rules[col] = "median" # Numerical columns --> median 
+for col in categorical_columns:
+    aggregation_rules[col] = "last" # Categorical columns --> last observation
+# Consolidate
+exoplanet_df = (exoplanet_df.groupby("planet_name", as_index=False).agg(aggregation_rules)) # Reconstructs canonical planetary records from archival measurements
+
+# Imputation --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Numerical Columns
 numerical_columns = exoplanet_df.select_dtypes(include=np.number).columns
 
