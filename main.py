@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import missingno as msno
 
-from sklearn.impute import KNNImputer, SimpleImputer, IterativeImputer
 from sklearn.experimental import enable_iterative_imputer
+from sklearn.impute import KNNImputer, SimpleImputer, IterativeImputer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
@@ -191,24 +191,65 @@ mask = np.random.rand(*masked_data.shape) < 0.1
 original_values = complete_data.copy()
 masked_data[mask] = np.nan
 
+# Reconstruction Error Evaluation -----------------------------------------------------------------------------------------------------------------------------------------------
+def evaluate_imputation(original, imputed, mask):
+    return mean_squared_error(original[mask], imputed[mask])
+
 # Median Imputation -------------------------------------------------------------------------------------------------------------------------------------------------------------
 median_imputer = SimpleImputer(strategy="median")
 median_imputed = pd.DataFrame(median_imputer.fit_transform(masked_data), columns=masked_data.columns)
 
-# KNN Imputation ----------------------------------------------------------------------------------------------------------------------------------------------------------------
-knn_imputer = KNNImputer(n_neighbors=5)
-knn_imputed = pd.DataFrame(knn_imputer.fit_transform(masked_data), columns=masked_data.columns)
+# Adaptive KNN Imputation ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Goal: Automatically determine the optimal number of neighbours by minimizing reconstruction error under simulated missingness
+knn_results = []
+
+candidate_neighbours = [3, 5, 7, 9, 11, 15]
+
+best_knn_mse = np.inf
+best_knn_k = None
+best_knn_imputed = None
+
+for k in candidate_neighbours:
+    candidate_imputer = KNNImputer(n_neighbors=k)
+    candidate_imputed = pd.DataFrame(candidate_imputer.fit_transform(masked_data), columns=masked_data.columns)
+    candidate_mse = evaluate_imputation(original_values.values, candidate_imputed.values, mask)
+    knn_results.append({"k": k, "MSE": candidate_mse})
+    print(f"KNN neighbours = {k} --> Reconstruction MSE = {candidate_mse:.4f}")
+
+    # Track best configuration
+    if candidate_mse < best_knn_mse:
+        best_knn_mse = candidate_mse
+        best_knn_k = k
+        best_knn_imputed = candidate_imputed
+
+# Final selected KNN outputs
+knn_imputed = best_knn_imputed
+knn_mse = best_knn_mse
+
+print("\n===== Optimal KNN Configuration =====")
+print(f"Best neighbour count: {best_knn_k}")
+print(f"Best reconstruction MSE: {best_knn_mse:.4f}")
+
+# KNN Hyperparameter Search Visualization ----------------------------------------------------------------------------------------------------------------------------------------------------
+knn_results_df = pd.DataFrame(knn_results)
+plt.figure(figsize=(10, 6))
+plt.plot(
+    knn_results_df["k"],
+    knn_results_df["MSE"],
+    marker="o"
+)
+plt.xlabel("Number of Neighbours (k)")
+plt.ylabel("Reconstruction MSE")
+plt.title("Adaptive KNN Hyperparameter Optimisation")
+
+plt.show()
+
 
 # Iterative Imputation ----------------------------------------------------------------------------------------------------------------------------------------------------------
 iterative_imputer = IterativeImputer(random_state=42, max_iter=20)
 iterative_imputed = pd.DataFrame(iterative_imputer.fit_transform(masked_data), columns=masked_data.columns)
 
-# Reconstruction Error Evaluation -----------------------------------------------------------------------------------------------------------------------------------------------
-def evaluate_imputation(original, imputed, mask):
-    return mean_squared_error(original[mask], imputed[mask])
-
 median_mse = evaluate_imputation(original_values.values, median_imputed.values, mask)
-knn_mse = evaluate_imputation(original_values.values, knn_imputed.values, mask)
 iterative_mse = evaluate_imputation(original_values.values, iterative_imputed.values, mask)
 
 print("\n===== Reconstruction Error =====")
@@ -223,7 +264,7 @@ median_corr = median_imputed.corr()
 knn_corr = knn_imputed.corr()
 iterative_corr = iterative_imputed.corr()
 
-median_corr_difference = np.abs(original_corr - knn_corr).mean().mean()
+median_corr_difference = np.abs(original_corr - median_corr).mean().mean()
 knn_corr_difference = np.abs(original_corr - knn_corr).mean().mean()
 iterative_corr_difference = np.abs(original_corr - iterative_corr).mean().mean()
 
@@ -358,7 +399,7 @@ print(f"Selected Method: {best_method}")
 if best_method == "Median":
     final_imputer = SimpleImputer(strategy="median")
 elif best_method == "KNN":
-    final_imputer = KNNImputer(n_neighbors=5)
+    final_imputer = KNNImputer(n_neighbors=best_knn_k)
 else:
     final_imputer = IterativeImputer(random_state=42, max_iter=20)
 
@@ -367,9 +408,6 @@ numerical_columns = exoplanet_df.select_dtypes(include=np.number).columns
 exoplanet_df[numerical_columns] = final_imputer.fit_transform(exoplanet_df[numerical_columns])
 
 print(f"\nFinal preprocessing pipeline applied using "f"{best_method} imputation.")
-
-
-
 
 # Feature Engineering --------------------------------------------------------
 # Log Planet Mass 
@@ -385,7 +423,7 @@ def classify_era(year):
         return "Modern Era"
     
 exoplanet_df["discovery_era"] = (
-    exoplanet_df["disc_year"].apply(classify_era)
+    exoplanet_df["discovery_year"].apply(classify_era)
 )
 
 # Habitability Proxy
@@ -426,7 +464,7 @@ plt.show()
 plt.figure(figsize=(12, 7))
 
 plt.scatter(
-    exoplanet_df["disc_year"], 
+    exoplanet_df["discovery_year"], 
     exoplanet_df["planet_mass_m_e"],
     alpha=0.5
 )
@@ -446,7 +484,7 @@ scatter = plt.scatter(
     exoplanet_df["stellar_temperature_k"], 
     exoplanet_df["planet_temperature_k"],
     s=exoplanet_df["planet_mass_m_e"] * 0.3,
-    c=exoplanet_df["disc_year"],
+    c=exoplanet_df["discovery_year"],
     alpha=0.6,
     cmap="viridis"
 )
