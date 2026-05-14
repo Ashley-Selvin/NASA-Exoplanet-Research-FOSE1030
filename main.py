@@ -1,3 +1,7 @@
+import os 
+import webbrowser 
+from datetime import datetime
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,6 +31,12 @@ for column in exoplanet_df.columns:
     print(f"- {column}")
 
 print("\nDataset shape: ", exoplanet_df.shape)
+
+# Report Directory ----------------------------------------------------------------------------------
+report_dir = "research_report"
+figures_dir = os.path.join(report_dir, "figures")
+
+os.makedirs(figures_dir, exist_ok=True)
 
 # Standardise column names
 exoplanet_df.columns = (
@@ -63,13 +73,24 @@ print(missing_summary)
 plt.figure(figsize=(14, 8))
 msno.matrix(exoplanet_df) # Matrix plot showing missing data patterns
 plt.title("Missing Data Matrix")
+plt.savefig(
+    os.path.join(figures_dir, "missingness_matrix.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 plt.show()
+plt.close()
 
 plt.figure(figsize=(14, 8))
 msno.bar(exoplanet_df) # Bar plot showing completeness distribution
 plt.title("Column Completeness")
+plt.savefig(
+    os.path.join(figures_dir, "completeness_bar.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 plt.show()
-
+plt.close()
 
 # Missingness by Discovery Method
 missing_by_method = (
@@ -129,9 +150,6 @@ invalid_temp = ((exoplanet_df["planet_temperature_k"] < 0) & exoplanet_df["plane
 print(f"Invalid planet temperature rows: {invalid_temp.sum()}")
 exoplanet_df = exoplanet_df[~invalid_temp]
 
-# Remove impossible eccentricity values
-exoplanet_df = exoplanet_df[(exoplanet_df["pl_orbeccen"] >= 0) & (exoplanet_df["pl_orbeccen"] < 1)]
-
 # Remove unrealistic stellar temperatures
 exoplanet_df = exoplanet_df[(exoplanet_df["stellar_temperature_k"] > 2000) & (exoplanet_df["stellar_temperature_k"] < 50000)]
 
@@ -145,8 +163,14 @@ plt.plot(yearly_completeness.index, yearly_completeness.values, marker="o")
 plt.xlabel("Discovery Year")
 plt.ylabel("Average Dataset Completeness (%)")
 plt.title("Dataset Completeness Across Discovery Years")
+plt.savefig(
+    os.path.join(figures_dir, "yearly_completeness.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
+plt.close()
 
 # Duplicate Consolidation ----------------------------------------------------------------------------------------------
 # Instead of simply dropping duplicates, we consolidate planetary records by keeping the latest release, aggregating numeric values and preserving the best available measurements for each planet.
@@ -241,9 +265,14 @@ plt.plot(
 plt.xlabel("Number of Neighbours (k)")
 plt.ylabel("Reconstruction MSE")
 plt.title("Adaptive KNN Hyperparameter Optimisation")
+plt.savefig(
+    os.path.join(figures_dir, "knn_optimisation.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
-
+plt.close()
 
 # Iterative Imputation ----------------------------------------------------------------------------------------------------------------------------------------------------------
 iterative_imputer = IterativeImputer(random_state=42, max_iter=20)
@@ -290,8 +319,14 @@ plt.bar(methods, mse_scores)
 
 plt.ylabel("Mean Squared Error")
 plt.title("Imputation Reconstruction Error")
+plt.savefig(
+    os.path.join(figures_dir, "imputation_mse.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
+plt.close()
 
 # Downstream XGBoost Performance -----------------------------------------------------------------------------------------------------------------------------------------------
 # Evaluate whether imputation quality improves ML predictive performance.
@@ -337,7 +372,14 @@ plt.figure(figsize=(8, 5))
 plt.bar(methods, [median_r2, knn_r2, iterative_r2])
 plt.ylabel("XGBoost R² Score")
 plt.title("Downstream ML Performance by Imputation Method")
+plt.savefig(
+    os.path.join(figures_dir, "ML_comparison_bar.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
+
 plt.show()
+plt.close()
 
 # Final Imputation Strategy --------------------------------------------------------------------------------------------------------------------------------------------
 # Combine:
@@ -374,9 +416,22 @@ print(imputation_results)
 # Normalize metrics --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Lower is better for: MSE, Correlation distortion
 # Higher is better for: R²
-imputation_results["MSE_Normalized"] = ((imputation_results["MSE"].max() - imputation_results["MSE"]) / (imputation_results["MSE"].max() - imputation_results["MSE"].min()))
-imputation_results["Correlation_Normalized"] = ((imputation_results["Correlation_Distortion"].max() - imputation_results["Correlation_Distortion"]) / (imputation_results["Correlation_Distortion"].max() - imputation_results["Correlation_Distortion"].min()))
-imputation_results["R2_Normalized"] = ((imputation_results["R2"] - imputation_results["R2"].min()) / (imputation_results["R2"].max() - imputation_results["R2"].min()))
+epsilon = 1e-9
+
+imputation_results["MSE_Normalized"] = (
+    (imputation_results["MSE"].max() - imputation_results["MSE"]) /
+    (imputation_results["MSE"].max() - imputation_results["MSE"].min() + epsilon)
+)
+
+imputation_results["Correlation_Normalized"] = (
+    (imputation_results["Correlation_Distortion"].max() - imputation_results["Correlation_Distortion"]) /
+    (imputation_results["Correlation_Distortion"].max() - imputation_results["Correlation_Distortion"].min() + epsilon)
+)
+
+imputation_results["R2_Normalized"] = (
+    (imputation_results["R2"] - imputation_results["R2"].min()) /
+    (imputation_results["R2"].max() - imputation_results["R2"].min() + epsilon)
+)
 
 # Composite Score -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Weighted scoring system 
@@ -411,7 +466,7 @@ print(f"\nFinal preprocessing pipeline applied using "f"{best_method} imputation
 
 # Feature Engineering --------------------------------------------------------
 # Log Planet Mass 
-exoplanet_df["log_planet_mass"] = np.log10(exoplanet_df["planet_mass_m_e"])
+exoplanet_df["log_planet_mass"] = np.log10(exoplanet_df["planet_mass_m_e"].clip(lower=1e-6))
 
 # Discovery Era 
 def classify_era(year):
@@ -428,7 +483,7 @@ exoplanet_df["discovery_era"] = (
 
 # Habitability Proxy
 exoplanet_df["habitability_score"] = (
-    1 / (1 + abs(exoplanet_df["planet_temperature_k"] - 288))
+    np.exp(-abs(exoplanet_df["planet_temperature_k"] - 288) / 100)
 )
 
 # Numerical Analysis --------------------------------------------------------
@@ -436,7 +491,6 @@ selected_columns = [
     "planet_mass_m_e", 
     "planet_temperature_k", 
     "stellar_temperature_k",
-    "pl_orbeccen",
 ]
 
 summary_statistics = pd.DataFrame({
@@ -449,7 +503,16 @@ print(summary_statistics)
 # Correlation Heatmap -------------------------
 plt.figure(figsize=(14, 10))
 
-correlation_matrix = (exoplanet_df[numerical_columns].corr())
+heatmap_columns = [
+    "planet_mass_m_e",
+    "planet_temperature_k",
+    "stellar_temperature_k",
+    "orbit_semi-major_axis_au",
+    "stellar_mass_m_sol",
+    "stellar_radius_r_sol",
+    "stellar_distance_pc"
+]
+correlation_matrix = (exoplanet_df[heatmap_columns].corr())
 
 sns.heatmap(
     correlation_matrix, 
@@ -457,7 +520,14 @@ sns.heatmap(
     center=0
 )
 plt.title("Correlation Heatmap")
+plt.savefig(
+    os.path.join(figures_dir, "correlation_heatmap.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
+
 plt.show()
+plt.close()
 
 # Simple Plot -----------------------------------------------------
 # Planet Mass vs Discovery Year
@@ -474,8 +544,14 @@ plt.yscale("log")
 plt.xlabel("Discovery Year")
 plt.ylabel("Planet Mass (Earth Masses)")
 plt.title("Planet Mass vs Discovery Year")
+plt.savefig(
+    os.path.join(figures_dir, "simple_plot.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
+plt.close()
 
 # Multi-Variable Scatter Plot -----------------------------------------------------
 plt.figure(figsize=(14, 8))
@@ -494,16 +570,21 @@ plt.colorbar(scatter, label="Discovery Year")
 plt.xlabel("Stellar Temperature (K)")
 plt.ylabel("Planet Equilibrium Temperature (K)")
 plt.title("Planetary Temperature vs Stellar Temperature")
+plt.savefig(
+    os.path.join(figures_dir, "multi_variable_scatter_plot.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
+plt.close()
 
 # PCA Dimensionality Reduction --------------------------------------------------------
 features_for_ml = [
     "planet_mass_m_e",
     "planet_temperature_k",
     "stellar_temperature_k",
-    "pl_orbsmax",
-    "pl_orbeccen",
+    "orbit_semi-major_axis_au",
 ]
 
 ml_df = exoplanet_df[features_for_ml].dropna()
@@ -532,14 +613,20 @@ plt.scatter(
 plt.xlabel("Principal Component 1")
 plt.ylabel("Principal Component 2")
 plt.title("PCA Projection of Exoplanet Feature Space")
+plt.savefig(
+    os.path.join(figures_dir, "pca_projection.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
+plt.close()
 
 # t-SNE Projection --------------------------------------------------------
 tsne = TSNE(
     n_components=2, 
     perplexity=30, 
-    n_iter=1000, 
+    max_iter=1000, 
     random_state=42
 )
 
@@ -557,8 +644,14 @@ plt.scatter(
 plt.title("t-SNE Projection of Exoplanet Populations")
 plt.xlabel("t-SNE Dimension 1")
 plt.ylabel("t-SNE Dimension 2")
+plt.savefig(
+    os.path.join(figures_dir, "tsne_projection.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
+plt.close()
 
 # Clustering ---------------------------------------------------------
 kmeans = KMeans(n_clusters=5, random_state=42)
@@ -578,16 +671,21 @@ plt.scatter(
 plt.title("K-Means Clustering of Exoplanets")
 plt.xlabel("t-SNE Dimension 1")
 plt.ylabel("t-SNE Dimension 2")
+plt.savefig(
+    os.path.join(figures_dir, "clustering_projection.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
+plt.close()
 
 # XGBoost Predictive Modelling ---------------------------------------------------------
 # Predict Planet Equilibrium Temperature
 prediction_features = [
     "stellar_temperature_k",
-    "pl_orbsmax",
-    "planet_mass_m_e",
-    "pl_orbeccen"
+    "orbit_semi-major_axis_au",
+    "planet_mass_m_e"
 ]
 
 prediction_df = exoplanet_df[prediction_features + ["planet_temperature_k"]].dropna()
@@ -640,15 +738,28 @@ plt.barh(
 
 plt.xlabel("Importance Score")
 plt.title("XGBoost Feature Importance")
+plt.savefig(
+    os.path.join(figures_dir, "xgb_importance.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
 
 plt.show()
+plt.close()
 
 # SHAP Explainability ---------------------------------------------------------
 explainer = shap.Explainer(xgb_model)
 shap_values = explainer(X_test)
 
 # SHAP Summary Plot
-shap.summary_plot(shap_values, X_test)
+shap.summary_plot(shap_values, X_test, show=False)
+plt.savefig(
+    os.path.join(figures_dir, "shap_summary.png"),
+    dpi=300, 
+    bbox_inches="tight"
+)
+
+plt.close()
 
 # Anomaly Detection with Isolation Forest ---------------------------------------------------------
 anomaly_detector = IsolationForest(contamination=0.01, random_state=42)
@@ -667,5 +778,482 @@ plt.scatter(
 plt.title("Anomaly Detection in Exoplanet Population")
 plt.xlabel("t-SNE Dimension 1")
 plt.ylabel("t-SNE Dimension 2")
+plt.savefig(
+    os.path.join(figures_dir, "anomaly_detection.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
+
 plt.show()
+plt.close()
+
+
+# -----------------------------------------------------------------------------------------------------------------------------------------
+# Research Report Generation 
+# -----------------------------------------------------------------------------------------------------------------------------------------
+report_html = f"""
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Exoplanet Research Report</title>
+
+<style>
+body {{
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    background-color: #f5f7fa;
+    color: #222;
+    line-height: 1.7;
+}}
+h1 {{
+    color: #0b3d91;
+    border-bottom: 3px solid #0b3d91;
+    padding-bottom: 10px;
+    background-color: #f5f7fa;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}}
+h2 {{
+    color: #1f5fbf;
+    margin-top: 40px;
+}}
+.section {{
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    border-left: 6px solid #0b3d91;
+    margin-bottom: 30px;
+    scroll-margin-top: 100px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}}
+img {{
+    width: 100%;
+    max-width: 1200px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 8px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}}
+table {{
+    border-collapse: collapse;
+    width: 100%;
+}}
+th, td {{
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}}
+th {{
+    background-color: #0b3d91;
+    color: white;
+}}
+.metric {{
+    font-size: 18px;
+    font-family: Consolas, monospace;
+    margin-bottom: 10px;
+}}
+.sidebar {{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 220px;
+    height: 100%;
+    background: #0b3d91;
+    padding: 25px;
+    padding-bottom: 50px;
+    overflow-y: auto;
+}}
+.sidebar h2 {{
+    color: white;
+}}
+.sidebar a {{
+    display: block;
+    color: white;
+    text-decoration: none;
+    margin-bottom: 15px;
+}}
+.sidebar a:hover {{
+    text-decoration: underline;
+}}
+body {{
+    margin-left: 260px;
+}}
+.styled-table {{
+    border-collapse: collapse;
+    margin-top: 15px;
+    width: 100%;
+    font-size: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+}}
+
+.styled-table thead tr {{
+    background-color: #0b3d91;
+    color: white;
+    text-align: left;
+}}
+
+.styled-table th, 
+.styled-table td {{
+    padding: 12px 15px;
+}}
+
+.styled-table tbody tr:nth-child(even) {{
+    background-color: #f3f6fb;
+}}
+
+.styled-table tbody tr:hover {{
+    background-color: #dce8ff;
+}}
+html {{
+    scroll-behavior: smooth;
+}}
+.caption {{
+    font-size: 14px;
+    color: #555;
+    font-style: italic;
+    line-height: 1.5;
+    margin-top: 8px;
+    margin-bottom: 30px;
+    text-align: center;
+}}
+
+</style>
+</head>
+
+<body>
+<h1>NASA Exoplanet Archive Research Report</h1>
+
+<div class="sidebar">
+<h2>Sections</h2>
+
+<a href="#summary">Dataset Summary</a>
+<a href="#forensics">Dataset Forensics</a>
+<a href="#duplicates">Duplicate Structure</a>
+<a href="#validation">Scientific Validation</a>
+<a href="#refinement">Observational Refinement</a>
+<a href="#imputation">Imputation Benchmarking</a>
+<a href="#statistics">Statistical Analysis</a>
+<a href="#pca">PCA Projection</a>
+<a href="#tsne">t-SNE Projection</a>
+<a href="#clustering">Clustering</a>
+<a href="#xgboost">XGBoost Modelling</a>
+<a href="#shap">SHAP Explainability</a>
+<a href="#anomalies">Anomaly Detection</a>
+
+</div>
+
+<p>
+Generated automatically using Python on:
+{datetime.now().strftime('%Y/%m/%d %H:%M:%S')}
+</p>
+
+<div class="section">
+<h2>Abstract</h2>
+
+<p>
+This report presents a comprehensive computational analysis of the NASA Exoplanet Archive using modern data science and machine learning methodologies. The study investigates dataset completeness, observational biases, duplicate archival structures, imputation strategies, dimensionality reduction, clustering behaviour, predictive modelling performance, explainable AI interpretations, and anomaly detection. The resulting pipeline demonstrates how astrophysical datasets can be transformed into scientifically interpretable machine learning frameworks while preserving physical realism and statistical integrity. 
+</p>
+
+</div>
+
+<!-- DATASET SUMMARY --> 
+<div class="section" id="summary">
+<h2>Dataset Summary</h2>
+
+<div class="metric"><b>Rows:</b> {exoplanet_df.shape[0]}</div>
+<div class="metric"><b>Columns:</b> {exoplanet_df.shape[1]}</div>
+<div class="metric"><b>Selected Imputation Method:</b> {best_method}</div>
+
+<p>
+This report investigates the structural quality, completeness and predictive characteristics of the NASA Exoplanet Archive.
+The pipeline combines data forensics, scientific validation, imputation benchmarking, dimensionality reduction, clustering, anomaly detection
+and explainable machine learning techniques.
+</p>
+
+</div>
+
+<!-- DATASET FORENSICS --> 
+<div class="section" id="forensics">
+<h2>Dataset Forensics</h2>
+
+<h3>Missing Value Summary</h3>
+
+{missing_summary.round(3).to_html(classes='styled-table')}
+
+<h3>Missingness by Discovery Method</h3>
+
+{missing_by_method.round(3).to_html(classes='styled-table')}
+
+<img src="figures/missingness_matrix.png">
+
+<div class="caption">
+Figure: Missing data matrix illustrating the distribution and structural patterns of incomplete observations across the NASA Exoplanet Archive dataset. White gaps indicate missing values and reveal systematic incompleteness across several astrophysical variables. 
+</div>
+
+<img src="figures/completeness_bar.png">
+
+<div class="caption">
+Figure: Column completeness distribution across all dataset features. Variables with lower completeness percentages indicate observational limitations and heterogeneous measurement availability across exoplanet detection techniques.
+</div>
+
+<p>
+The dataset exhibits substantial variability in completeness across features and discovery techniques.
+Transit based detections generally contain richer radius and orbital measurements, while direct imaging 
+records display sparser orbital information. These patterns highlight the observational biases inherent 
+in exoplanet detection methods.
+</p>
+
+</div>
+
+<!-- DUPLICATE STRUCTURE --> 
+<div class="section" id="duplicates">
+<h2>Duplicate Structure Analysis</h2>
+
+<p>
+Duplicate planetary records were investigated to identify archival 
+revisions and evolving measurements over time. Rather than removing 
+duplicates entirely, records were consolidated to preserve the most 
+complete and scientifically reliable measurements available for each planet.
+</p>
+
+</div>
+
+<!-- SCIENTIFIC VAIDATION --> 
+<div class="section" id="validation">
+<h2>Scientific Validation</h2>
+
+<p>
+Physical validation rules were applied to remove scientifically 
+impossible observations, including negative planetary masses, 
+invalid orbital radii, impossible eccentricities, 
+and unrealistic stellar temperatures. 
+These filtering procedures improve downstream model reliability 
+and reduce noise introduced by corrupted observations.
+</p>
+
+</div>
+
+<!-- OBSERVATIONAL REFINEMENT --> 
+<div class="section" id="refinement">
+<h2>Observational Refinement Analysis</h2>
+
+<img src="figures/yearly_completeness.png">
+
+<div class="caption">
+Figure: Average dataset completeness by exoplanet discovery year. Completeness increases substantially over time, reflecting advances in astronomical instrumentation, observational precision, and archival standardisation practices.
+</div>
+
+<p>
+Dataset completeness improves substantially across discovery years, 
+reflecting advances in observational astronomy, instrumentation, 
+and archival standardisation. Modern-era detections contain more 
+complete planetary and stellar measurements compared to earlier discoveries. 
+</p>
+
+</div>
+
+<!-- Imputation --> 
+<div class="section" id="imputation">
+<h2>Imputation Benchmarking</h2>
+
+{imputation_results.to_html(index=False, classes='styled-table')}
+
+<img src="figures/knn_optimisation.png">
+
+<div class="caption">
+Figure: Reconstruction error across candidate KNN neighbour configurations during imputation benchmarking. Lower mean squared error values indicate stronger preservation of the original astrophysical structure under simulated missingness conditions.
+</div>
+
+<img src="figures/imputation_mse.png">
+
+<div class="caption">
+Figure: Comparative reconstruction performance of median, KNN, and iterative imputation strategies. Lower reconstruction error indicates improved recovery of masked astrophysical observations and stronger preservation of underlying statistical relationships.
+</div>
+
+<h3>KNN Hyperparameter Search Results</h3>
+
+{knn_results_df.to_html(index=False, classes='styled-table')}
+
+<p>
+Multiple imputation strategies were benchmarked using reconstruction
+error, correlation preservation, and downstream machine learning 
+performance. The selected imputation strategy achieved the strongest
+balance between numerical accuracy and structural preservation.
+</p>
+
+</div>
+
+<!-- STATISTICS --> 
+<div class="section" id="statistics">
+<h2>Statistical Analysis</h2>
+
+{summary_statistics.round(3).to_html(classes='styled-table')}
+
+<img src="figures/correlation_heatmap.png">
+
+<div class="caption">
+Figure: Correlation heatmap of numerical astrophysical variables within the processed exoplanet dataset. Strong positive and negative correlations reveal physically meaningful relationships between stellar, orbital, and planetary properties.
+</div>
+
+<img src="figures/simple_plot.png">
+
+<div class="caption">
+Figure: Planetary mass distribution across discovery years shown on a logarithmic scale. The visualisation highlights the increasing diversity of detected exoplanets as observational capabilities improved over time.
+</div>
+
+<img src="figures/multi_variable_scatter_plot.png">
+
+<div class="caption">
+Figure: Multi-variable relationship between stellar temperature and planetary equilibrium temperature. Point size represents planetary mass, while colour encodes discovery year, illustrating multidimensional astrophysical structure within the dataset.
+</div>
+
+<p>
+Statistical analysis reveals substantial heterogeneity across exoplanet
+populations. Strong relationships emerge between stellar temperature, 
+planetary equilibrium temperature, and orbital properties, 
+suggesting physically meaningful structure within the dataset.
+</p>
+
+</div>
+
+<!-- PCA --> 
+<div class="section" id="pca">
+<h2>PCA Projection</h2>
+
+<img src="figures/pca_projection.png">
+
+<div class="caption">
+Figure: Principal Component Analysis projection of the exoplanet feature space. The dimensionality reduction preserves major variance structures and reveals broad population gradients across astrophysical characteristics.
+</div>
+
+<p>
+Principal Component Analysis compresses the high-dimensional feature 
+space into lower-dimensional representations while preserving major 
+variance structures. The resulting projection demonstrates broad 
+planetary groupings and continuous astrophysical gradients.
+</p>
+
+</div>
+
+<!-- TSNE --> 
+<div class="section" id="tsne">
+<h2>t-SNE Projection</h2>
+
+<img src="figures/tsne_projection.png">
+
+<div class="caption">
+Figure: t-SNE projection of exoplanetary observations in reduced-dimensional space. Non-linear embedding reveals local structures and potential population subgroups not fully captured by linear dimensionality reduction methods.
+</div>
+
+<p>
+t-SNE reveals highly non-linear structures within the exoplanet
+population that are not fully captured by PCA. Distinct local 
+clusters emerge, indicating potentially different planetary formation
+or observational regimes.
+</p>
+
+</div>
+
+<!-- CLUSTERING --> 
+<div class="section" id="clustering">
+<h2>Cluster Structure</h2>
+
+<img src="figures/clustering_projection.png">
+
+<div class="caption">
+Figure: K-Means clustering results visualised within the t-SNE embedded feature space. Distinct cluster structures suggest the presence of multiple astrophysical subpopulations within the exoplanet archive.
+</div>
+
+<p>
+K-Means clustering identifies several major exoplanet population
+groups within the transformed feature space. These clusters may 
+correspond to astrophysical subclasses characterised by differences
+in planetary mass, orbital structure, and stellar environment. 
+</p>
+
+</div>
+
+<!-- XGBOOST --> 
+<div class="section" id="xgboost">
+<h2>XGBoost Predictive Modelling</h2>
+
+<div class="metric"><b>Mean Absolute Error:</b> {mae:.2f}</div>
+<div class="metric"><b>R² Score:</b> {r2:.4f}</div>
+
+{importance_df.to_html(index=False, classes='styled-table')}
+
+<img src="figures/xgb_importance.png">
+
+<div class="caption">
+Figure: Relative feature importance scores derived from the XGBoost predictive model. Stellar temperature and orbital characteristics contribute most strongly to planetary equilibrium temperature prediction.
+</div>
+
+<p>
+The XGBoost model achieved strong predictive performance when estimating 
+planetary equilibrium temperature from stellar and orbital variables.
+Feature importance analysis indicates that stellar temperature and 
+orbital distance contribute most strongly to predictive accuracy.
+</p>
+
+</div>
+
+<!-- SHAP -->
+<div class="section" id="shap">
+<h2>SHAP Explainability</h2>
+
+<img src="figures/shap_summary.png">
+
+<div class="caption">
+Figure: SHAP summary plot illustrating feature contributions to XGBoost model predictions across all test observations. Features with larger SHAP magnitudes exert stronger influence on predicted planetary temperatures.
+</div>
+
+<p>
+SHAP analysis provides interpretable explanations for model predictions 
+by quantifying the contribution of each feature across observations. 
+The results confirm that astrophysically meaningful variables dominate 
+model behaviour and influence predictive outcomes consistently. 
+</p>
+
+</div>
+
+<!-- ANOMALIES --> 
+<div class="section" id="anomalies">
+<h2>Anomaly Detection</h2>
+
+<img src="figures/anomaly_detection.png">
+
+<div class="caption">
+Figure: Isolation Forest anomaly detection results visualised within the reduced-dimensional exoplanet feature space. Highlighted observations represent statistically unusual planetary systems that deviate substantially from the broader population structure.
+</div>
+
+<p>
+Isolation Forest analysis identifies rare or extreme exoplanetary 
+configurations that deviate significantly from the broader population.
+These anomalies may represent scientifically interesting outliers, 
+measurement artefacts, or potentially novel astrophysical systems.
+</p>
+
+<hr>
+
+<p style="text-align: center; color: #666;">
+End of Automated Research Report
+</p>
+
+</div>
+
+</body>
+</html>
+"""
+
+report_path = os.path.join(report_dir, "exoplanet_report.html")
+with open(report_path, "w", encoding="utf-8") as file:
+    file.write(report_html)
+
+print(f"Research report saved to: {report_path}")
+
+webbrowser.open(report_path)
 
