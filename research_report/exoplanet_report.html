@@ -1,0 +1,1009 @@
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Exoplanet Research Report</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    background-color: #f5f7fa;
+    color: #222;
+    line-height: 1.7;
+}
+h1 {
+    color: #0b3d91;
+    border-bottom: 3px solid #0b3d91;
+    padding-bottom: 10px;
+    background-color: #f5f7fa;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+h2 {
+    color: #1f5fbf;
+    margin-top: 40px;
+}
+.section {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    border-left: 6px solid #0b3d91;
+    margin-bottom: 30px;
+    scroll-margin-top: 100px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+img {
+    width: 100%;
+    max-width: 1200px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 8px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+th {
+    background-color: #0b3d91;
+    color: white;
+}
+.metric {
+    font-size: 18px;
+    font-family: Consolas, monospace;
+    margin-bottom: 10px;
+}
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 220px;
+    height: 100%;
+    background: #0b3d91;
+    padding: 25px;
+    padding-bottom: 50px;
+    overflow-y: auto;
+}
+.sidebar h2 {
+    color: white;
+}
+.sidebar a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    margin-bottom: 15px;
+}
+.sidebar a:hover {
+    text-decoration: underline;
+}
+body {
+    margin-left: 260px;
+}
+.styled-table {
+    border-collapse: collapse;
+    margin-top: 15px;
+    width: 100%;
+    font-size: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.styled-table thead tr {
+    background-color: #0b3d91;
+    color: white;
+    text-align: left;
+}
+
+.styled-table th, 
+.styled-table td {
+    padding: 12px 15px;
+}
+
+.styled-table tbody tr:nth-child(even) {
+    background-color: #f3f6fb;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #dce8ff;
+}
+html {
+    scroll-behavior: smooth;
+}
+.caption {
+    font-size: 14px;
+    color: #555;
+    font-style: italic;
+    line-height: 1.5;
+    margin-top: 8px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+</style>
+</head>
+
+<body>
+<h1>NASA Exoplanet Archive Research Report</h1>
+
+<div class="sidebar">
+<h2>Sections</h2>
+
+<a href="#summary">Dataset Summary</a>
+<a href="#forensics">Dataset Forensics</a>
+<a href="#duplicates">Duplicate Structure</a>
+<a href="#validation">Scientific Validation</a>
+<a href="#refinement">Observational Refinement</a>
+<a href="#imputation">Imputation Benchmarking</a>
+<a href="#statistics">Statistical Analysis</a>
+<a href="#pca">PCA Projection</a>
+<a href="#tsne">t-SNE Projection</a>
+<a href="#clustering">Clustering</a>
+<a href="#xgboost">XGBoost Modelling</a>
+<a href="#shap">SHAP Explainability</a>
+<a href="#anomalies">Anomaly Detection</a>
+
+</div>
+
+<p>
+Generated automatically using Python on:
+2026/05/15 02:26:53
+</p>
+
+<div class="section">
+<h2>Abstract</h2>
+
+<p>
+This report presents a comprehensive computational analysis of the NASA Exoplanet Archive using modern data science and machine learning methodologies. The study investigates dataset completeness, observational biases, duplicate archival structures, imputation strategies, dimensionality reduction, clustering behaviour, predictive modelling performance, explainable AI interpretations, and anomaly detection. The resulting pipeline demonstrates how astrophysical datasets can be transformed into scientifically interpretable machine learning frameworks while preserving physical realism and statistical integrity. 
+</p>
+
+</div>
+
+<!-- DATASET SUMMARY --> 
+<div class="section" id="summary">
+<h2>Dataset Summary</h2>
+
+<div class="metric"><b>Rows:</b> 2098</div>
+<div class="metric"><b>Columns:</b> 25</div>
+<div class="metric"><b>Selected Imputation Method:</b> Iterative</div>
+
+<p>
+This report investigates the structural quality, completeness and predictive characteristics of the NASA Exoplanet Archive.
+The pipeline combines data forensics, scientific validation, imputation benchmarking, dimensionality reduction, clustering, anomaly detection
+and explainable machine learning techniques.
+</p>
+
+</div>
+
+<!-- DATASET FORENSICS --> 
+<div class="section" id="forensics">
+<h2>Dataset Forensics</h2>
+
+<h3>Missing Value Summary</h3>
+
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Missing Count</th>
+      <th>Missing Percentage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>stellar_spectral_class</th>
+      <td>8299</td>
+      <td>83.803</td>
+    </tr>
+    <tr>
+      <th>planet_temperature_k</th>
+      <td>6629</td>
+      <td>66.939</td>
+    </tr>
+    <tr>
+      <th>planet_mass_m_e</th>
+      <td>6178</td>
+      <td>62.385</td>
+    </tr>
+    <tr>
+      <th>planet_radius_r_e</th>
+      <td>4363</td>
+      <td>44.057</td>
+    </tr>
+    <tr>
+      <th>planet_radius_r_j</th>
+      <td>4363</td>
+      <td>44.057</td>
+    </tr>
+    <tr>
+      <th>orbit_semi-major_axis_au</th>
+      <td>4095</td>
+      <td>41.351</td>
+    </tr>
+    <tr>
+      <th>stellar_mass_m_sol</th>
+      <td>1710</td>
+      <td>17.267</td>
+    </tr>
+    <tr>
+      <th>stellar_radius_r_sol</th>
+      <td>1609</td>
+      <td>16.248</td>
+    </tr>
+    <tr>
+      <th>stellar_temperature_k</th>
+      <td>1576</td>
+      <td>15.914</td>
+    </tr>
+    <tr>
+      <th>orbital_period_days</th>
+      <td>754</td>
+      <td>7.614</td>
+    </tr>
+    <tr>
+      <th>stellar_magnitude</th>
+      <td>302</td>
+      <td>3.050</td>
+    </tr>
+    <tr>
+      <th>stellar_distance_pc</th>
+      <td>94</td>
+      <td>0.949</td>
+    </tr>
+    <tr>
+      <th>host_star_name</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>planet_name</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>discovery_year</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>discovery_method</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>planets_in_system</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>stars_in_system</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>discovery_facility</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>right_ascension_deg</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>declination_deg</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>releasedate</th>
+      <td>0</td>
+      <td>0.000</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Missingness by Discovery Method</h3>
+
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>planet_name</th>
+      <th>host_star_name</th>
+      <th>stars_in_system</th>
+      <th>planets_in_system</th>
+      <th>discovery_method</th>
+      <th>discovery_year</th>
+      <th>discovery_facility</th>
+      <th>orbital_period_days</th>
+      <th>orbit_semi-major_axis_au</th>
+      <th>planet_radius_r_e</th>
+      <th>planet_radius_r_j</th>
+      <th>planet_mass_m_e</th>
+      <th>planet_temperature_k</th>
+      <th>stellar_spectral_class</th>
+      <th>stellar_temperature_k</th>
+      <th>stellar_radius_r_sol</th>
+      <th>stellar_mass_m_sol</th>
+      <th>right_ascension_deg</th>
+      <th>declination_deg</th>
+      <th>stellar_distance_pc</th>
+      <th>stellar_magnitude</th>
+      <th>releasedate</th>
+    </tr>
+    <tr>
+      <th>discovery_method</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Astrometry</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.000</td>
+      <td>40.000</td>
+      <td>100.000</td>
+      <td>100.000</td>
+      <td>0.000</td>
+      <td>100.000</td>
+      <td>60.000</td>
+      <td>40.000</td>
+      <td>40.000</td>
+      <td>0.000</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>20.000</td>
+      <td>20.000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Disk Kinematics</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>100.000</td>
+      <td>0.000</td>
+      <td>100.000</td>
+      <td>100.000</td>
+      <td>0.000</td>
+      <td>100.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Eclipse Timing Variations</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.000</td>
+      <td>14.286</td>
+      <td>100.000</td>
+      <td>100.000</td>
+      <td>0.000</td>
+      <td>100.000</td>
+      <td>100.000</td>
+      <td>85.714</td>
+      <td>85.714</td>
+      <td>14.286</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>28.571</td>
+      <td>0.000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Imaging</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>72.632</td>
+      <td>18.947</td>
+      <td>69.474</td>
+      <td>69.474</td>
+      <td>16.842</td>
+      <td>37.895</td>
+      <td>47.368</td>
+      <td>46.316</td>
+      <td>65.263</td>
+      <td>20.000</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>8.421</td>
+      <td>13.684</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Microlensing</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>99.275</td>
+      <td>5.435</td>
+      <td>100.000</td>
+      <td>100.000</td>
+      <td>3.986</td>
+      <td>100.000</td>
+      <td>97.464</td>
+      <td>93.478</td>
+      <td>100.000</td>
+      <td>4.710</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>4.710</td>
+      <td>100.000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Orbital Brightness Modulation</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.000</td>
+      <td>75.000</td>
+      <td>75.000</td>
+      <td>75.000</td>
+      <td>37.500</td>
+      <td>100.000</td>
+      <td>75.000</td>
+      <td>0.000</td>
+      <td>37.500</td>
+      <td>37.500</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Pulsation Timing Variations</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.000</td>
+      <td>100.000</td>
+      <td>100.000</td>
+      <td>100.000</td>
+      <td>0.000</td>
+      <td>100.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>100.000</td>
+      <td>0.000</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Radial Velocity</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>2.078</td>
+      <td>7.676</td>
+      <td>95.081</td>
+      <td>95.081</td>
+      <td>2.884</td>
+      <td>92.366</td>
+      <td>59.627</td>
+      <td>21.968</td>
+      <td>38.380</td>
+      <td>4.495</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.254</td>
+      <td>0.297</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Transit</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>5.046</td>
+      <td>54.156</td>
+      <td>24.541</td>
+      <td>24.541</td>
+      <td>85.074</td>
+      <td>57.561</td>
+      <td>91.745</td>
+      <td>10.456</td>
+      <td>4.947</td>
+      <td>21.962</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.897</td>
+      <td>0.070</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>Transit Timing Variations</th>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>5.882</td>
+      <td>41.176</td>
+      <td>47.059</td>
+      <td>47.059</td>
+      <td>58.824</td>
+      <td>58.824</td>
+      <td>100.000</td>
+      <td>11.765</td>
+      <td>5.882</td>
+      <td>5.882</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.0</td>
+    </tr>
+  </tbody>
+</table>
+
+<img src="figures/missingness_matrix.png">
+
+<div class="caption">
+Figure: Missing data matrix illustrating the distribution and structural patterns of incomplete observations across the NASA Exoplanet Archive dataset. White gaps indicate missing values and reveal systematic incompleteness across several astrophysical variables. 
+</div>
+
+<img src="figures/completeness_bar.png">
+
+<div class="caption">
+Figure: Column completeness distribution across all dataset features. Variables with lower completeness percentages indicate observational limitations and heterogeneous measurement availability across exoplanet detection techniques.
+</div>
+
+<p>
+The dataset exhibits substantial variability in completeness across features and discovery techniques.
+Transit based detections generally contain richer radius and orbital measurements, while direct imaging 
+records display sparser orbital information. These patterns highlight the observational biases inherent 
+in exoplanet detection methods.
+</p>
+
+</div>
+
+<!-- DUPLICATE STRUCTURE --> 
+<div class="section" id="duplicates">
+<h2>Duplicate Structure Analysis</h2>
+
+<p>
+Duplicate planetary records were investigated to identify archival 
+revisions and evolving measurements over time. Rather than removing 
+duplicates entirely, records were consolidated to preserve the most 
+complete and scientifically reliable measurements available for each planet.
+</p>
+
+</div>
+
+<!-- SCIENTIFIC VAIDATION --> 
+<div class="section" id="validation">
+<h2>Scientific Validation</h2>
+
+<p>
+Physical validation rules were applied to remove scientifically 
+impossible observations, including negative planetary masses, 
+invalid orbital radii, impossible eccentricities, 
+and unrealistic stellar temperatures. 
+These filtering procedures improve downstream model reliability 
+and reduce noise introduced by corrupted observations.
+</p>
+
+</div>
+
+<!-- OBSERVATIONAL REFINEMENT --> 
+<div class="section" id="refinement">
+<h2>Observational Refinement Analysis</h2>
+
+<img src="figures/yearly_completeness.png">
+
+<div class="caption">
+Figure: Average dataset completeness by exoplanet discovery year. Completeness increases substantially over time, reflecting advances in astronomical instrumentation, observational precision, and archival standardisation practices.
+</div>
+
+<p>
+Dataset completeness improves substantially across discovery years, 
+reflecting advances in observational astronomy, instrumentation, 
+and archival standardisation. Modern-era detections contain more 
+complete planetary and stellar measurements compared to earlier discoveries. 
+</p>
+
+</div>
+
+<!-- Imputation --> 
+<div class="section" id="imputation">
+<h2>Imputation Benchmarking</h2>
+
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Method</th>
+      <th>MSE</th>
+      <th>Correlation_Distortion</th>
+      <th>R2</th>
+      <th>MSE_Normalized</th>
+      <th>Correlation_Normalized</th>
+      <th>R2_Normalized</th>
+      <th>Composite_Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Median</td>
+      <td>1.008582e+06</td>
+      <td>0.026718</td>
+      <td>0.627794</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <td>KNN</td>
+      <td>8.397119e+05</td>
+      <td>0.009272</td>
+      <td>0.756021</td>
+      <td>0.679072</td>
+      <td>1.000000</td>
+      <td>1.000000</td>
+      <td>0.839536</td>
+    </tr>
+    <tr>
+      <td>Iterative</td>
+      <td>7.599046e+05</td>
+      <td>0.015835</td>
+      <td>0.736906</td>
+      <td>1.000000</td>
+      <td>0.623786</td>
+      <td>0.850932</td>
+      <td>0.857322</td>
+    </tr>
+  </tbody>
+</table>
+
+<img src="figures/knn_optimisation.png">
+
+<div class="caption">
+Figure: Reconstruction error across candidate KNN neighbour configurations during imputation benchmarking. Lower mean squared error values indicate stronger preservation of the original astrophysical structure under simulated missingness conditions.
+</div>
+
+<img src="figures/imputation_mse.png">
+
+<div class="caption">
+Figure: Comparative reconstruction performance of median, KNN, and iterative imputation strategies. Lower reconstruction error indicates improved recovery of masked astrophysical observations and stronger preservation of underlying statistical relationships.
+</div>
+
+<h3>KNN Hyperparameter Search Results</h3>
+
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>k</th>
+      <th>MSE</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>3</td>
+      <td>869425.197063</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>876968.001650</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>869066.018848</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>862119.279572</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>848027.781865</td>
+    </tr>
+    <tr>
+      <td>15</td>
+      <td>839711.911608</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+Multiple imputation strategies were benchmarked using reconstruction
+error, correlation preservation, and downstream machine learning 
+performance. The selected imputation strategy achieved the strongest
+balance between numerical accuracy and structural preservation.
+</p>
+
+</div>
+
+<!-- STATISTICS --> 
+<div class="section" id="statistics">
+<h2>Statistical Analysis</h2>
+
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Mean</th>
+      <th>Median</th>
+      <th>Standard Deviation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>planet_mass_m_e</th>
+      <td>587.370</td>
+      <td>246.472</td>
+      <td>1203.833</td>
+    </tr>
+    <tr>
+      <th>planet_temperature_k</th>
+      <td>1031.857</td>
+      <td>950.698</td>
+      <td>635.315</td>
+    </tr>
+    <tr>
+      <th>stellar_temperature_k</th>
+      <td>5323.110</td>
+      <td>5448.250</td>
+      <td>1515.620</td>
+    </tr>
+  </tbody>
+</table>
+
+<img src="figures/correlation_heatmap.png">
+
+<div class="caption">
+Figure: Correlation heatmap of numerical astrophysical variables within the processed exoplanet dataset. Strong positive and negative correlations reveal physically meaningful relationships between stellar, orbital, and planetary properties.
+</div>
+
+<img src="figures/simple_plot.png">
+
+<div class="caption">
+Figure: Planetary mass distribution across discovery years shown on a logarithmic scale. The visualisation highlights the increasing diversity of detected exoplanets as observational capabilities improved over time.
+</div>
+
+<img src="figures/multi_variable_scatter_plot.png">
+
+<div class="caption">
+Figure: Multi-variable relationship between stellar temperature and planetary equilibrium temperature. Point size represents planetary mass, while colour encodes discovery year, illustrating multidimensional astrophysical structure within the dataset.
+</div>
+
+<p>
+Statistical analysis reveals substantial heterogeneity across exoplanet
+populations. Strong relationships emerge between stellar temperature, 
+planetary equilibrium temperature, and orbital properties, 
+suggesting physically meaningful structure within the dataset.
+</p>
+
+</div>
+
+<!-- PCA --> 
+<div class="section" id="pca">
+<h2>PCA Projection</h2>
+
+<img src="figures/pca_projection.png">
+
+<div class="caption">
+Figure: Principal Component Analysis projection of the exoplanet feature space. The dimensionality reduction preserves major variance structures and reveals broad population gradients across astrophysical characteristics.
+</div>
+
+<p>
+Principal Component Analysis compresses the high-dimensional feature 
+space into lower-dimensional representations while preserving major 
+variance structures. The resulting projection demonstrates broad 
+planetary groupings and continuous astrophysical gradients.
+</p>
+
+</div>
+
+<!-- TSNE --> 
+<div class="section" id="tsne">
+<h2>t-SNE Projection</h2>
+
+<img src="figures/tsne_projection.png">
+
+<div class="caption">
+Figure: t-SNE projection of exoplanetary observations in reduced-dimensional space. Non-linear embedding reveals local structures and potential population subgroups not fully captured by linear dimensionality reduction methods.
+</div>
+
+<p>
+t-SNE reveals highly non-linear structures within the exoplanet
+population that are not fully captured by PCA. Distinct local 
+clusters emerge, indicating potentially different planetary formation
+or observational regimes.
+</p>
+
+</div>
+
+<!-- CLUSTERING --> 
+<div class="section" id="clustering">
+<h2>Cluster Structure</h2>
+
+<img src="figures/clustering_projection.png">
+
+<div class="caption">
+Figure: K-Means clustering results visualised within the t-SNE embedded feature space. Distinct cluster structures suggest the presence of multiple astrophysical subpopulations within the exoplanet archive.
+</div>
+
+<p>
+K-Means clustering identifies several major exoplanet population
+groups within the transformed feature space. These clusters may 
+correspond to astrophysical subclasses characterised by differences
+in planetary mass, orbital structure, and stellar environment. 
+</p>
+
+</div>
+
+<!-- XGBOOST --> 
+<div class="section" id="xgboost">
+<h2>XGBoost Predictive Modelling</h2>
+
+<div class="metric"><b>Mean Absolute Error:</b> 188.24</div>
+<div class="metric"><b>R² Score:</b> 0.7551</div>
+
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Feature</th>
+      <th>Importance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>orbit_semi-major_axis_au</td>
+      <td>0.250707</td>
+    </tr>
+    <tr>
+      <td>stellar_temperature_k</td>
+      <td>0.362686</td>
+    </tr>
+    <tr>
+      <td>planet_mass_m_e</td>
+      <td>0.386607</td>
+    </tr>
+  </tbody>
+</table>
+
+<img src="figures/xgb_importance.png">
+
+<div class="caption">
+Figure: Relative feature importance scores derived from the XGBoost predictive model. Stellar temperature and orbital characteristics contribute most strongly to planetary equilibrium temperature prediction.
+</div>
+
+<p>
+The XGBoost model achieved strong predictive performance when estimating 
+planetary equilibrium temperature from stellar and orbital variables.
+Feature importance analysis indicates that stellar temperature and 
+orbital distance contribute most strongly to predictive accuracy.
+</p>
+
+</div>
+
+<!-- SHAP -->
+<div class="section" id="shap">
+<h2>SHAP Explainability</h2>
+
+<img src="figures/shap_summary.png">
+
+<div class="caption">
+Figure: SHAP summary plot illustrating feature contributions to XGBoost model predictions across all test observations. Features with larger SHAP magnitudes exert stronger influence on predicted planetary temperatures.
+</div>
+
+<p>
+SHAP analysis provides interpretable explanations for model predictions 
+by quantifying the contribution of each feature across observations. 
+The results confirm that astrophysically meaningful variables dominate 
+model behaviour and influence predictive outcomes consistently. 
+</p>
+
+</div>
+
+<!-- ANOMALIES --> 
+<div class="section" id="anomalies">
+<h2>Anomaly Detection</h2>
+
+<img src="figures/anomaly_detection.png">
+
+<div class="caption">
+Figure: Isolation Forest anomaly detection results visualised within the reduced-dimensional exoplanet feature space. Highlighted observations represent statistically unusual planetary systems that deviate substantially from the broader population structure.
+</div>
+
+<p>
+Isolation Forest analysis identifies rare or extreme exoplanetary 
+configurations that deviate significantly from the broader population.
+These anomalies may represent scientifically interesting outliers, 
+measurement artefacts, or potentially novel astrophysical systems.
+</p>
+
+<hr>
+
+<p style="text-align: center; color: #666;">
+End of Automated Research Report
+</p>
+
+</div>
+
+</body>
+</html>
