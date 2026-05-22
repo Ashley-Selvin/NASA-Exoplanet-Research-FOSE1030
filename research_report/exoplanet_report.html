@@ -155,7 +155,7 @@ html {
 
 <p>
 Generated automatically using Python on:
-2026/05/15 02:26:53
+2026/05/22 21:25:04
 </p>
 
 <div class="section">
@@ -654,6 +654,138 @@ complete and scientifically reliable measurements available for each planet.
 
 </div>
 
+<div class="metric">
+<b>Exact Duplicate Rows:</b> 13
+</div>
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>count</th>
+    </tr>
+    <tr>
+      <th>planet_name</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>GJ 436 b</th>
+      <td>23</td>
+    </tr>
+    <tr>
+      <th>Kepler-10 b</th>
+      <td>23</td>
+    </tr>
+    <tr>
+      <th>HAT-P-7 b</th>
+      <td>23</td>
+    </tr>
+    <tr>
+      <th>HAT-P-11 b</th>
+      <td>22</td>
+    </tr>
+    <tr>
+      <th>HD 209458 b</th>
+      <td>22</td>
+    </tr>
+    <tr>
+      <th>HD 189733 b</th>
+      <td>21</td>
+    </tr>
+    <tr>
+      <th>Kepler-10 c</th>
+      <td>20</td>
+    </tr>
+    <tr>
+      <th>GJ 1214 b</th>
+      <td>20</td>
+    </tr>
+    <tr>
+      <th>KOI-13 b</th>
+      <td>20</td>
+    </tr>
+    <tr>
+      <th>KOI-94 d</th>
+      <td>19</td>
+    </tr>
+    <tr>
+      <th>55 Cnc e</th>
+      <td>19</td>
+    </tr>
+    <tr>
+      <th>Kepler-12 b</th>
+      <td>18</td>
+    </tr>
+    <tr>
+      <th>Kepler-11 f</th>
+      <td>18</td>
+    </tr>
+    <tr>
+      <th>Kepler-11 d</th>
+      <td>18</td>
+    </tr>
+    <tr>
+      <th>Kepler-105 c</th>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>Kepler-11 b</th>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>Kepler-11 e</th>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>KOI-94 c</th>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>KOI-94 e</th>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>HAT-P-2 b</th>
+      <td>17</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Example Archival Evolution</h3>
+
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>planet_name</th>
+      <th>host_star_name</th>
+      <th>stars_in_system</th>
+      <th>planets_in_system</th>
+      <th>discovery_method</th>
+      <th>discovery_year</th>
+      <th>discovery_facility</th>
+      <th>orbital_period_days</th>
+      <th>orbit_semi-major_axis_au</th>
+      <th>planet_radius_r_e</th>
+      <th>planet_radius_r_j</th>
+      <th>planet_mass_m_e</th>
+      <th>planet_temperature_k</th>
+      <th>stellar_spectral_class</th>
+      <th>stellar_temperature_k</th>
+      <th>stellar_radius_r_sol</th>
+      <th>stellar_mass_m_sol</th>
+      <th>right_ascension_deg</th>
+      <th>declination_deg</th>
+      <th>stellar_distance_pc</th>
+      <th>stellar_magnitude</th>
+      <th>releasedate</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
 <!-- SCIENTIFIC VAIDATION --> 
 <div class="section" id="validation">
 <h2>Scientific Validation</h2>
@@ -661,7 +793,7 @@ complete and scientifically reliable measurements available for each planet.
 <p>
 Physical validation rules were applied to remove scientifically 
 impossible observations, including negative planetary masses, 
-invalid orbital radii, impossible eccentricities, 
+invalid orbital radii, 
 and unrealistic stellar temperatures. 
 These filtering procedures improve downstream model reliability 
 and reduce noise introduced by corrupted observations.
@@ -797,6 +929,14 @@ balance between numerical accuracy and structural preservation.
 
 </div>
 
+<div class="metric">
+<b>Optimal KNN Neighbours:</b> 15
+</div>
+
+<div class="metric">
+<b>Best KNN Reconstruction MSE:</b> 839711.9116
+</div>
+
 <!-- STATISTICS --> 
 <div class="section" id="statistics">
 <h2>Statistical Analysis</h2>
@@ -815,19 +955,19 @@ balance between numerical accuracy and structural preservation.
       <th>planet_mass_m_e</th>
       <td>587.370</td>
       <td>246.472</td>
-      <td>1203.833</td>
+      <td>1203.546</td>
     </tr>
     <tr>
       <th>planet_temperature_k</th>
       <td>1031.857</td>
       <td>950.698</td>
-      <td>635.315</td>
+      <td>635.164</td>
     </tr>
     <tr>
       <th>stellar_temperature_k</th>
       <td>5323.110</td>
       <td>5448.250</td>
-      <td>1515.620</td>
+      <td>1515.259</td>
     </tr>
   </tbody>
 </table>
@@ -857,6 +997,22 @@ planetary equilibrium temperature, and orbital properties,
 suggesting physically meaningful structure within the dataset.
 </p>
 
+</div>
+
+<h2>Seaborn Regression Analysis</h2>
+
+<img src="figures/seaborn_regression.png">
+
+<div class="caption">
+Figure: Seaborn regression analysis illustrating the positive relationship between stellar temperature and planetary equilibrium temperature. The fitted trend line provides statistical evidence supporting the physical relationship between stellar energy output and planetary heating.
+</div>
+
+<div class="metric">
+<b>Pearson Correlation:</b> 0.401
+</div>
+
+<div class="metric">
+<b>P-value:</b> 0.000000
 </div>
 
 <!-- PCA --> 
@@ -899,6 +1055,59 @@ or observational regimes.
 
 <!-- CLUSTERING --> 
 <div class="section" id="clustering">
+<img src="figures/cluster_optimisation.png">
+
+<div class="caption">
+Figure: Silhouette score optimisation across candidate K-Means cluster counts. The selected cluster configuration maximises separation between exoplanet populations while preserving internal cluster cohesion.
+</div>
+
+<table border="1" class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Clusters</th>
+      <th>Silhouette</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2</td>
+      <td>0.746677</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>0.732732</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>0.709579</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>0.342564</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>0.348854</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>0.380467</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>0.348212</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>0.346163</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>0.325790</td>
+    </tr>
+  </tbody>
+</table>
+
 <h2>Cluster Structure</h2>
 
 <img src="figures/clustering_projection.png">
@@ -995,6 +1204,23 @@ Isolation Forest analysis identifies rare or extreme exoplanetary
 configurations that deviate significantly from the broader population.
 These anomalies may represent scientifically interesting outliers, 
 measurement artefacts, or potentially novel astrophysical systems.
+</p>
+
+<h3>Overall Findings</h3> 
+<p>
+This investigations demonstrated that modern data science techniques can successfully extract meaningful insights from large-scale exoplanet archives. Strong relationships were observed between stellar and planetary properties, while dimensionality reduction and clustering techniques revealed distinct structures within the exoplanet population. Predictive modelling achieved strong performance when estimating planetary equilibrium temperatures, and explainable AI techniques identified the astrophysical variables most responsible for model predictions. 
+</p>
+
+<h3>Limitations</h3>
+
+<p>
+Several limitations remain within the dataset. Many planetary properties contain substantial missingness due to observational constraints and differing detection methods. Some measurements are indirect estimates rather than direct observations, introducing uncertainty into both statistical and machine learning analyses. Additionally, the dataset reflects observational selection effects, meaning detected planets may not fully represent the true distribution of planetary systems throughout the galaxy.
+</p>
+
+<h3>Future Work</h3>
+
+<p>
+Future investigations could incorporate uncertainty propagation, Bayesian modelling approaches, deep learning architectures, and additional astrophysical parameters. Interactive visualisation tools and temporal analyses of archive revisions could further improve scientific interpretability. Expanding the study to include planetary classification and habitability prediction represents another promising avenue for future research.
 </p>
 
 <hr>
