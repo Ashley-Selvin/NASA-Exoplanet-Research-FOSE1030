@@ -155,7 +155,7 @@ html {
 
 <p>
 Generated automatically using Python on:
-2026/05/22 21:25:04
+2026/05/25 13:38:12
 </p>
 
 <div class="section">
@@ -652,8 +652,6 @@ duplicates entirely, records were consolidated to preserve the most
 complete and scientifically reliable measurements available for each planet.
 </p>
 
-</div>
-
 <div class="metric">
 <b>Exact Duplicate Rows:</b> 13
 </div>
@@ -785,6 +783,8 @@ complete and scientifically reliable measurements available for each planet.
   <tbody>
   </tbody>
 </table>
+
+</div>
 
 <!-- SCIENTIFIC VAIDATION --> 
 <div class="section" id="validation">
@@ -1055,6 +1055,9 @@ or observational regimes.
 
 <!-- CLUSTERING --> 
 <div class="section" id="clustering">
+
+<h2>Clustering Analysis</h2>
+
 <img src="figures/cluster_optimisation.png">
 
 <div class="caption">
@@ -1066,44 +1069,54 @@ Figure: Silhouette score optimisation across candidate K-Means cluster counts. T
     <tr style="text-align: right;">
       <th>Clusters</th>
       <th>Silhouette</th>
+      <th>Davies_Bouldin</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>2</td>
       <td>0.746677</td>
+      <td>1.131394</td>
     </tr>
     <tr>
       <td>3</td>
       <td>0.732732</td>
+      <td>0.729017</td>
     </tr>
     <tr>
       <td>4</td>
       <td>0.709579</td>
+      <td>0.534389</td>
     </tr>
     <tr>
       <td>5</td>
       <td>0.342564</td>
+      <td>0.667071</td>
     </tr>
     <tr>
       <td>6</td>
       <td>0.348854</td>
+      <td>0.675792</td>
     </tr>
     <tr>
       <td>7</td>
       <td>0.380467</td>
+      <td>0.723173</td>
     </tr>
     <tr>
       <td>8</td>
       <td>0.348212</td>
+      <td>0.766452</td>
     </tr>
     <tr>
       <td>9</td>
       <td>0.346163</td>
+      <td>0.728819</td>
     </tr>
     <tr>
       <td>10</td>
       <td>0.325790</td>
+      <td>0.772193</td>
     </tr>
   </tbody>
 </table>
@@ -1130,6 +1143,7 @@ in planetary mass, orbital structure, and stellar environment.
 <h2>XGBoost Predictive Modelling</h2>
 
 <div class="metric"><b>Mean Absolute Error:</b> 188.24</div>
+<div class="metric"><b>Root Mean Squared Error:</b> 281.18</div>
 <div class="metric"><b>R² Score:</b> 0.7551</div>
 
 <table border="1" class="dataframe styled-table">
@@ -1161,11 +1175,22 @@ in planetary mass, orbital structure, and stellar environment.
 Figure: Relative feature importance scores derived from the XGBoost predictive model. Stellar temperature and orbital characteristics contribute most strongly to planetary equilibrium temperature prediction.
 </div>
 
+<img src="figures/prediction_performance.png">
+
+<div class="caption">
+Figure: Comparison of observed and predicted planetary equilibrium temperatures. Points closer to the diagonal line indicate more accurate predictions. Deviations from the line represent prediction error.
+</div>
+
 <p>
-The XGBoost model achieved strong predictive performance when estimating 
+The XGBoost model achieved strong predictive performance when estimating
 planetary equilibrium temperature from stellar and orbital variables.
-Feature importance analysis indicates that stellar temperature and 
-orbital distance contribute most strongly to predictive accuracy.
+Model accuracy was evaluated using Mean Absolute Error (MAE), Root Mean
+Squared Error (RMSE), and the coefficient of determination (R²). The
+RMSE metric provides additional insight into the magnitude of larger
+prediction errors because it penalises large deviations more heavily
+than MAE. Feature importance analysis indicates that stellar
+temperature and orbital distance contribute most strongly to predictive
+accuracy.
 </p>
 
 </div>

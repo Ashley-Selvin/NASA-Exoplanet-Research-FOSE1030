@@ -17,7 +17,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error, silhouette_score
+from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error, silhouette_score, davies_bouldin_score
 from sklearn.ensemble import IsolationForest
 
 from xgboost import XGBRegressor
@@ -657,6 +657,8 @@ plt.savefig(
 plt.show()
 plt.close()
 
+print(pca.explained_variance_ratio_.sum())
+
 # t-SNE Projection --------------------------------------------------------
 tsne = TSNE(
     n_components=2, 
@@ -692,7 +694,9 @@ plt.close()
 candidate_clusters = range(2, 11)
 best_k = None
 best_silhouette = -1
+best_davies = 1
 best_model = None
+best_composite = -np.inf
 
 cluster_search_results = []
 
@@ -705,25 +709,66 @@ for k in candidate_clusters:
 
     labels = model.fit_predict(scaled_data)
 
-    score = silhouette_score(scaled_data, labels)
+    silhouette = silhouette_score(scaled_data, labels)
+    davies = davies_bouldin_score(scaled_data, labels)
 
     cluster_search_results.append({
         "Clusters": k, 
-        "Silhouette": score
+        "Silhouette": silhouette, 
+        "Davies_Bouldin": davies
     })
-    print(f"k={k} | silhouette={score:.4f}")
+    print(f"k={k} | Silhouette={silhouette:.4f} | Davies Bouldin={davies:.4f}")
 
-    if score > best_silhouette:
-        best_silhouette = score
-        best_k = k
-        best_model = model
+cluster_results_df = pd.DataFrame(cluster_search_results)
+epsilon = 1e-9
+cluster_results_df["Silhouette_Norm"] = ((cluster_results_df["Silhouette"] - cluster_results_df["Silhouette"].min()) / (cluster_results_df["Silhouette"].max() - cluster_results_df["Silhouette"].min() + epsilon))
+
+cluster_results_df["DB_Norm"] = (
+    (
+        cluster_results_df["Davies_Bouldin"].max() - cluster_results_df["Davies_Bouldin"]
+    ) 
+    / 
+    (
+        cluster_results_df["Davies_Bouldin"].max() - cluster_results_df["Davies_Bouldin"].min() + epsilon
+    )
+)
+
+cluster_results_df["Composite"] = (0.6 * cluster_results_df["Silhouette_Norm"] + 0.4 * cluster_results_df["DB_Norm"])
+
+best_row = cluster_results_df.loc[cluster_results_df["Composite"].idxmax()]
+best_k = int(best_row["Clusters"])
 
 print("\n===== Optimal Clustering =====")
 print(f"Best K: {best_k}")
-print(f"Silhouette Score: {best_silhouette:.4f}")
+print(f"Silhouette Score: {best_row['Silhouette']:.4f}")
+print(f"Davies Bouldin: {best_row['Davies_Bouldin']:.4f}")
+print(f"Composite: {best_row['Composite']:.4f}")
 
-kmeans = best_model
-cluster_labels = kmeans.labels_
+fig, ax1 = plt.subplots(figsize=(10,6))
+ax1.plot(
+    cluster_results_df["Clusters"],
+    cluster_results_df["Silhouette"],
+    marker="o",
+    label="Silhouette"
+)
+
+ax1.set_ylabel("Silhouette Score")
+ax2 = ax1.twinx()
+ax2.plot(
+    cluster_results_df["Clusters"],
+    cluster_results_df["Davies_Bouldin"],
+    marker="s"
+)
+ax2.set_ylabel("Davies-Bouldin Index")
+plt.title("Cluster Optimisation Metrics")
+plt.savefig(
+    os.path.join(
+        figures_dir, 
+        "cluster_optimisation.png"
+    ), 
+    dpi=300,
+    bbox_inches="tight"
+)
 
 cluster_results_df = pd.DataFrame(cluster_search_results)
 plt.figure(figsize=(10,6))
@@ -841,6 +886,32 @@ plt.savefig(
 )
 
 plt.show()
+plt.close()
+
+rmse = np.sqrt(
+    mean_squared_error(y_test, predictions)
+)
+
+print(rmse)
+plt.figure(figsize=(8, 8))
+plt.scatter(
+    y_test, 
+    predictions, 
+    alpha=0.5
+)
+plt.plot(
+    [y_test.min(), y_test.max()],
+    [y_test.min(), y_test.max()],
+    linestyle="--"
+)
+plt.xlabel("Actual Temperature (K)")
+plt.ylabel("Predicted Temperature (K)")
+plt.title("Actual vs Predicted Planet Temperature")
+plt.savefig(
+    os.path.join(figures_dir, "prediction_performance.png"),
+    dpi=300, 
+    bbox_inches="tight"
+)
 plt.close()
 
 # SHAP Explainability ---------------------------------------------------------
@@ -1116,8 +1187,6 @@ duplicates entirely, records were consolidated to preserve the most
 complete and scientifically reliable measurements available for each planet.
 </p>
 
-</div>
-
 <div class="metric">
 <b>Exact Duplicate Rows:</b> {exact_duplicates}
 </div>
@@ -1126,6 +1195,8 @@ complete and scientifically reliable measurements available for each planet.
 <h3>Example Archival Evolution</h3>
 
 {planet_history.head(20).to_html(classes='styled-table')}
+
+</div>
 
 <!-- SCIENTIFIC VAIDATION --> 
 <div class="section" id="validation">
@@ -1289,6 +1360,9 @@ or observational regimes.
 
 <!-- CLUSTERING --> 
 <div class="section" id="clustering">
+
+<h2>Clustering Analysis</h2>
+
 <img src="figures/cluster_optimisation.png">
 
 <div class="caption">
@@ -1319,6 +1393,7 @@ in planetary mass, orbital structure, and stellar environment.
 <h2>XGBoost Predictive Modelling</h2>
 
 <div class="metric"><b>Mean Absolute Error:</b> {mae:.2f}</div>
+<div class="metric"><b>Root Mean Squared Error:</b> {rmse:.2f}</div>
 <div class="metric"><b>R² Score:</b> {r2:.4f}</div>
 
 {importance_df.to_html(index=False, classes='styled-table')}
@@ -1329,11 +1404,22 @@ in planetary mass, orbital structure, and stellar environment.
 Figure: Relative feature importance scores derived from the XGBoost predictive model. Stellar temperature and orbital characteristics contribute most strongly to planetary equilibrium temperature prediction.
 </div>
 
+<img src="figures/prediction_performance.png">
+
+<div class="caption">
+Figure: Comparison of observed and predicted planetary equilibrium temperatures. Points closer to the diagonal line indicate more accurate predictions. Deviations from the line represent prediction error.
+</div>
+
 <p>
-The XGBoost model achieved strong predictive performance when estimating 
+The XGBoost model achieved strong predictive performance when estimating
 planetary equilibrium temperature from stellar and orbital variables.
-Feature importance analysis indicates that stellar temperature and 
-orbital distance contribute most strongly to predictive accuracy.
+Model accuracy was evaluated using Mean Absolute Error (MAE), Root Mean
+Squared Error (RMSE), and the coefficient of determination (R²). The
+RMSE metric provides additional insight into the magnitude of larger
+prediction errors because it penalises large deviations more heavily
+than MAE. Feature importance analysis indicates that stellar
+temperature and orbital distance contribute most strongly to predictive
+accuracy.
 </p>
 
 </div>
