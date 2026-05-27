@@ -1168,10 +1168,8 @@ Figure: Column completeness distribution across all dataset features. Variables 
 </div>
 
 <p>
-The dataset exhibits substantial variability in completeness across features and discovery techniques.
-Transit based detections generally contain richer radius and orbital measurements, while direct imaging 
-records display sparser orbital information. These patterns highlight the observational biases inherent 
-in exoplanet detection methods.
+Exoplanet discoveries have become increasingly information-rich over time, reflecting advances in telescope sensitivity, 
+data processing techniques and archive standardisation.
 </p>
 
 </div>
@@ -1255,10 +1253,12 @@ Figure: Comparative reconstruction performance of median, KNN, and iterative imp
 {knn_results_df.to_html(index=False, classes='styled-table')}
 
 <p>
-Multiple imputation strategies were benchmarked using reconstruction
-error, correlation preservation, and downstream machine learning 
-performance. The selected imputation strategy achieved the strongest
-balance between numerical accuracy and structural preservation.
+No single imputation method dominated all evaluation criteria. 
+Iterative imputation achieved the lowest reconstruction error, 
+while KNN better preserved feature relationships and produced 
+marginally stronger predictive performance. This highlights the 
+trade-off between statistical recovery and downstream modelling 
+objectives.
 </p>
 
 </div>
@@ -1296,10 +1296,7 @@ Figure: Multi-variable relationship between stellar temperature and planetary eq
 </div>
 
 <p>
-Statistical analysis reveals substantial heterogeneity across exoplanet
-populations. Strong relationships emerge between stellar temperature, 
-planetary equilibrium temperature, and orbital properties, 
-suggesting physically meaningful structure within the dataset.
+A statistically significant moderate positive relationship was observed between stellar temperature and planetary equilibrium temperature (r = 0.401, p < 0.001).
 </p>
 
 </div>
@@ -1331,10 +1328,8 @@ Figure: Principal Component Analysis projection of the exoplanet feature space. 
 </div>
 
 <p>
-Principal Component Analysis compresses the high-dimensional feature 
-space into lower-dimensional representations while preserving major 
-variance structures. The resulting projection demonstrates broad 
-planetary groupings and continuous astrophysical gradients.
+PCA reveals that a relatively small number of principal components capture much of the variance within the dataset, 
+while several extreme planetary systems appear as clear outliers.
 </p>
 
 </div>
@@ -1380,10 +1375,7 @@ Figure: K-Means clustering results visualised within the t-SNE embedded feature 
 </div>
 
 <p>
-K-Means clustering identifies several major exoplanet population
-groups within the transformed feature space. These clusters may 
-correspond to astrophysical subclasses characterised by differences
-in planetary mass, orbital structure, and stellar environment. 
+The exoplanet population naturally separates into a small number of broad groups, with clustering quality deteriorating substantially beyond four clusters.
 </p>
 
 </div>
@@ -1417,9 +1409,9 @@ Model accuracy was evaluated using Mean Absolute Error (MAE), Root Mean
 Squared Error (RMSE), and the coefficient of determination (R²). The
 RMSE metric provides additional insight into the magnitude of larger
 prediction errors because it penalises large deviations more heavily
-than MAE. Feature importance analysis indicates that stellar
-temperature and orbital distance contribute most strongly to predictive
-accuracy.
+than MAE. Feature importance analysis indicates that Stellar temperature 
+and planetary mass emerged as the strongest predictors of planetary 
+equilibrium temperature, with orbital distance also contributing substantially.
 </p>
 
 </div>
@@ -1438,7 +1430,9 @@ Figure: SHAP summary plot illustrating feature contributions to XGBoost model pr
 SHAP analysis provides interpretable explanations for model predictions 
 by quantifying the contribution of each feature across observations. 
 The results confirm that astrophysically meaningful variables dominate 
-model behaviour and influence predictive outcomes consistently. 
+model behaviour and influence predictive outcomes consistently.
+Stellar temperature is not only important on average, but also drives 
+the largest individual prediction shifts.
 </p>
 
 </div>
@@ -1454,15 +1448,24 @@ Figure: Isolation Forest anomaly detection results visualised within the reduced
 </div>
 
 <p>
-Isolation Forest analysis identifies rare or extreme exoplanetary 
-configurations that deviate significantly from the broader population.
-These anomalies may represent scientifically interesting outliers, 
-measurement artefacts, or potentially novel astrophysical systems.
+Outliers are not randomly distributed throughout the feature space but 
+appear concentrated within specific astrophysical regimes, indicating 
+potentially unusual planetary systems rather than random measurement noise.
 </p>
 
 <h3>Overall Findings</h3> 
 <p>
-This investigations demonstrated that modern data science techniques can successfully extract meaningful insights from large-scale exoplanet archives. Strong relationships were observed between stellar and planetary properties, while dimensionality reduction and clustering techniques revealed distinct structures within the exoplanet population. Predictive modelling achieved strong performance when estimating planetary equilibrium temperatures, and explainable AI techniques identified the astrophysical variables most responsible for model predictions. 
+This investigations demonstrated that modern data science techniques can 
+successfully extract meaningful insights from large-scale exoplanet archives. 
+Moderate but statistically significant relationships were observed between stellar 
+and planetary properties, while dimensionality reduction and clustering techniques 
+revealed distinct structures within the exoplanet population. Predictive modelling
+achieved strong performance when estimating planetary equilibrium temperatures, and 
+explainable AI techniques identified the astrophysical variables most responsible for 
+model predictions. The XGBoost model explained approximately 75% of the variance in 
+planetary equilibrium temperature, demonstrating that a relatively small set of stellar 
+and orbital features contains substantial predictive information regarding planetary 
+thermal environments.
 </p>
 
 <h3>Limitations</h3>
