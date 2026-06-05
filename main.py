@@ -544,16 +544,15 @@ plt.close()
 
 # Simple Plot -----------------------------------------------------
 plt.figure(figsize=(12, 7))
-plt.scatter(
-    exoplanet_df["discovery_year"],
-    exoplanet_df["planet_mass_m_e"],
-    alpha=0.5,
-    label="Confirmed Exoplanets"
+plt.hist(
+    exoplanet_df["planet_temperature_k"],
+    bins=40,
+    alpha=0.8,
+    label="Exoplanets"
 )
-plt.yscale("log")
-plt.xlabel("Discovery Year")
-plt.ylabel("Planet Mass (Earth Masses)")
-plt.title("Planet Mass vs Discovery Year")
+plt.xlabel("Planet Equilibrium Temperature (K)")
+plt.ylabel("Number of Exoplanets")
+plt.title("Distribution of Planetary Temperatures")
 plt.legend()
 plt.savefig(
     os.path.join(figures_dir, "simple_plot.png"),
@@ -1127,6 +1126,18 @@ This report presents a comprehensive computational analysis of the NASA Exoplane
 
 </div>
 
+<div style="
+background: #fff3cd;
+border: 1px solid #ffe69c;
+padding: 15px;
+margin-bottom: 25px;
+border-radius: 8px;
+font-weight: bold;
+color: #664d03;
+">
+Note: This HTML report is to assist with visual inspection of results and figures during development. It is not the report submitted for assessment. The submitted document is the separate PDF report prepared according to the assignment requirements, NOT THIS ONE. 
+</div>
+
 <!-- DATASET SUMMARY --> 
 <div class="section" id="summary">
 <h2>Dataset Summary</h2>
@@ -1286,7 +1297,7 @@ Figure: Correlation heatmap of numerical astrophysical variables within the proc
 <img src="figures/simple_plot.png">
 
 <div class="caption">
-Figure: Planetary mass distribution across discovery years shown on a logarithmic scale. The visualisation highlights the increasing diversity of detected exoplanets as observational capabilities improved over time.
+Figure: Distribution of planetary equilibrium temperatures within the NASA Exoplanet Archive. The histogram illustrates how exoplanets are concentrated within particular temperature ranges and highlights the presence of extreme thermal environments.
 </div>
 
 <img src="figures/multi_variable_scatter_plot.png">
